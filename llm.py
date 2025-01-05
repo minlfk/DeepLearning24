@@ -29,19 +29,23 @@ class llm():
     def encode(self, string):
         return self.tokenizer.encode(string, return_tensors='pt')
 
+    # def generate_pristine(self, prompt):
+    #     input_ids_pristine = self.tokenizer.encode(prompt, return_tensors='pt')
+    #     output_pristine_ids = self.model.generate(input_ids_pristine)
+    #     output_pristine = self.tokenizer.decode(output_pristine_ids[0], skip_special_tokens=True)
+    #     print(output_pristine)
+    #     return output_pristine
+    
     def generate_pristine(self, prompt):
+    # Ensure pad_token_id is set for GPT2
         input_ids_pristine = self.tokenizer.encode(prompt, return_tensors='pt')
-        output_pristine_ids = self.model.generate(input_ids_pristine)
+        output_pristine_ids = self.model.generate(
+            input_ids_pristine,
+            max_length=150,  # or any desired max length
+            num_return_sequences=1,
+            pad_token_id=self.tokenizer.eos_token_id  # Set pad_token_id to eos_token_id
+        )
         output_pristine = self.tokenizer.decode(output_pristine_ids[0], skip_special_tokens=True)
-        print(output_pristine)
+        #print(f"Model Response: {output_pristine}")
         return output_pristine
     
-    #def rag_qa_pipe(question: str, passages: List[str]) -> str:
-    #"""
-    #Define the RAG pipeline which concatenates passages to the question.
-    #:param question: Question text.
-    #:param passages: Relevant text passages.
-    #:return: Generated text from the pipeline.
-    #"""
-    #passages = "\n".join([f"CONTEXT: {c}" for c in passages])
-    #return vanilla_qa_pipe(f"{passages}\nQUESTION: {question}\nANSWER: ", max_new_tokens=10)[0]["generated_text"]
