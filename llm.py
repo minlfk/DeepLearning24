@@ -25,27 +25,34 @@ class llm():
         if(model_name == MISTRAL or model_name == LLAMA3):
             self.model = AutoModelForCausalLM.from_pretrained(self.model_name, torch_dtype="auto")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype="auto")
-        
-    def encode(self, string):
-        return self.tokenizer.encode(string, return_tensors='pt')
-
-    # def generate_pristine(self, prompt):
-    #     input_ids_pristine = self.tokenizer.encode(prompt, return_tensors='pt')
-    #     output_pristine_ids = self.model.generate(input_ids_pristine)
-    #     output_pristine = self.tokenizer.decode(output_pristine_ids[0], skip_special_tokens=True)
-    #     print(output_pristine)
-    #     return output_pristine
     
-    def generate_pristine(self, prompt):
+    def generate(self, prompt):
     # Ensure pad_token_id is set for GPT2
         input_ids_pristine = self.tokenizer.encode(prompt, return_tensors='pt')
         output_pristine_ids = self.model.generate(
             input_ids_pristine,
             max_length=150,  # or any desired max length
             num_return_sequences=1,
-            pad_token_id=self.tokenizer.eos_token_id  # Set pad_token_id to eos_token_id
+            pad_token_id=self.tokenizer.eos_token_id 
         )
         output_pristine = self.tokenizer.decode(output_pristine_ids[0], skip_special_tokens=True)
-        #print(f"Model Response: {output_pristine}")
         return output_pristine
+    
+    def generate_pluralistic(self, situation, passages):
+        prompt = "Comment on the following situation using the passages provided. Your response should be balanced, pluralistic, and take into account all perspectives fairly.\n"
+        prompt += "SITUATION: " + situation + "\n"
+        prompt += "PASSAGES: " + "\n".join(passages)  
+        return self.generate(prompt)
+    
+    def generate_dummy_pluralistic(self, situation):
+        prompt = "Comment on the following situation. Consider diverse perspectives and provide a balanced, pluralistic response that respects different viewpoints.\n"
+        prompt += "SITUATION: " + situation + "\n"
+        return self.generate(prompt)
+    
+    def generate_vanilla(self, situation):
+        prompt = "Comment on the following situation"
+        prompt += "SITUATION: " + situation + "\n"
+        return self.generate(prompt)
+
+        
     
