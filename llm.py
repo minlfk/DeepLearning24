@@ -62,7 +62,7 @@ class llm():
     # Generate a pluralistic answer given contextual passages from each belief group
     def generate_pluralistic(self, situation, passages, beliefgroups):
         number_passages = len(passages)
-        prompt = "Comment on the following situation given the " + str(number_passages) + " possible choices. Your response should take into account all perspectives: " + ', '.join(beliefgroups) + "\n"
+        prompt = "Comment on the following situation given the " + str(number_passages) + " possible choices. Your response should take into account all perspectives: " + ', '.join(beliefgroups) + ".\n"
         prompt += "SITUATION: " + situation + "\n"
         for i, passage in enumerate(passages):
             prompt += "PASSAGE " + str(i + 1) + ": "+ passage + "\n"
@@ -76,7 +76,7 @@ class llm():
     
     # Generate an answer, without further instructions
     def generate_vanilla(self, situation):
-        prompt = "Comment on the following situation"
+        prompt = "Comment on the following situation.\n"
         prompt += "SITUATION: " + situation + "\n"
         return self.generate(prompt)
 
