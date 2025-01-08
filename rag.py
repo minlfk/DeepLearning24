@@ -6,6 +6,7 @@ Vec = List
 Val = Any
 Group = str
 
+# Class for storing "belief groups" (different groups with different perspectives)
 class BeliefGroups:
 
     def __init__(self, groups):
