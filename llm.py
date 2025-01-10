@@ -11,8 +11,6 @@ GPT2 = 'gpt2'
 MISTRAL = 'mistralai/Mistral-7B-Instruct-v0.1'
 LLAMA3 = "meta-llama/Meta-Llama-3-8B"
 T5 = "google/flan-t5-small"
-DISTIL_BERT = "distilbert-base-uncased"
-TINY_LLAMA = 'TinyLlama/TinyLlama-1.1B-Chat-v1.0'
 
 class llm():
     def __init__(self, model_name = GPT2):
@@ -29,12 +27,6 @@ class llm():
         if(model_name == MISTRAL or model_name == LLAMA3):
             self.model = AutoModelForCausalLM.from_pretrained(self.model_name, torch_dtype="auto")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype="auto")
-        if(model_name == DISTIL_BERT):
-            self.tokenizer = DistilBertTokenizer.from_pretrained(self.model_name)
-            self.model = DistilBertModel.from_pretrained(self.model_name)
-        if(model_name == TINY_LLAMA):
-            task = "question-answering"
-            self.pipe = pipeline(task, model=self.model_name, torch_dtype=torch.bfloat16, device_map="auto")
 
     # Generate some text given a prompt
     def generate(self, prompt):
