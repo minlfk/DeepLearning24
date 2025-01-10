@@ -50,20 +50,6 @@ class llm():
             )
             output_pristine = self.tokenizer.decode(output_pristine_ids[0], skip_special_tokens=True)
             return output_pristine
-
-    # Remove the prompt from the answer of the llm (llm output the prompt + answer)
-    def remove_prompts(self, results, length_prompts):
-        for i, result in enumerate(results):
-            for key in result.keys():
-                # Create the corresponding key for the length
-                length_key = f"{key}_length"
-                # Check if the length is available in length_prompts
-                if length_key in length_prompts[i]:
-                    # Get the length to trim
-                    trim_length = length_prompts[i][length_key]
-                    # Trim the first `trim_length` characters from the current result key
-                    result[key] = result[key][trim_length:]
-        return results
     
     # Generate a pluralistic answer given contextual passages from each belief group
     def generate_pluralistic(self, situation, passages, beliefgroups):
@@ -86,7 +72,7 @@ class llm():
         prompt += "SITUATION: " + situation + "\n"
         return self.generate(prompt), len(prompt)
 
-    def generate_deterministic(self, situation, passages, beliefgroup):
+    def generate_single_belief(self, situation, passages, beliefgroup):
         prompt = "Comment on the following situation. Your response should take into account the " + beliefgroup + " viewpoint. \n"
         prompt += "SITUATION: " + situation + " viewpoint. \n"
         for i, passage in enumerate(passages):
@@ -98,9 +84,8 @@ class llm():
     # - given data and kb
     # - retrieve closest passages in each belief group
     # - Fetch 1) pluralistic answer with passages 2) pluralistic answer without passages 3) answer with additional instructions
-    def run_on_ds(self, ds, kb_embed, model_embd, distance_metric, beliefgroups, range = 2):
+    def run_on_ds(self, ds, kb_embed, model_embd, distance_metric, beliefgroups, range = 2, trim = True):
         results = []
-        length_prompts = []
         for i, elem in (enumerate(ds[:range])):
             query = elem[0]['situation'] + ' ' + elem[1]['intention']
             retrieved_moral = kb_embed.retrieve(model_embd.encode(query), distance_metric, 'moral', k = 1)
@@ -112,10 +97,17 @@ class llm():
             pluralistic, length_prompt_plur = self.generate_pluralistic(query, [moral_choice_pred, immoral_choice_pred], beliefgroups)
             dummy_pluralistic, length_prompt_dummy_plur = self.generate_dummy_pluralistic(query)
             vanilla, length_prompt_van = self.generate_vanilla(query)
-            moral, length_prompt_moral = self.generate_deterministic(query, [moral_choice_pred, immoral_choice_pred], beliefgroups[0])
-            immoral, length_prompt_immoral = self.generate_deterministic(query, [moral_choice_pred, immoral_choice_pred], beliefgroups[1])         
-            results.append({"pluralistic": pluralistic, "dummy_pluralistic": dummy_pluralistic, "vanilla": vanilla, "moral": moral, "immoral": immoral})
-            length_prompts.append({"pluralistic_length": length_prompt_plur, "dummy_pluralistic_length": length_prompt_dummy_plur, "vanilla_length": length_prompt_van, "moral_length": length_prompt_moral, "immoral_length": length_prompt_immoral})
+            moral, length_prompt_moral = self.generate_single_belief(query, [moral_choice_pred, immoral_choice_pred], beliefgroups[0])
+            immoral, length_prompt_immoral = self.generate_single_belief(query, [moral_choice_pred, immoral_choice_pred], beliefgroups[1])         
 
-        return results, length_prompts
+            if(trim):
+                pluralistic = pluralistic[length_prompt_plur:].strip()
+                dummy_pluralistic = dummy_pluralistic[length_prompt_dummy_plur:].strip()
+                vanilla = vanilla[length_prompt_van:].strip()
+                moral = moral[length_prompt_moral:].strip()
+                immoral = immoral[length_prompt_immoral:].strip()
+
+            results.append({"pluralistic": pluralistic, "dummy_pluralistic": dummy_pluralistic, "vanilla": vanilla, "moral": moral, "immoral": immoral})
+
+        return results
 
