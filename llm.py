@@ -11,11 +11,14 @@ GPT2 = 'gpt2'
 MISTRAL = 'mistralai/Mistral-7B-Instruct-v0.1'
 LLAMA3 = "meta-llama/Meta-Llama-3-8B"
 T5 = "google/flan-t5-small"
+DISTIL_BERT = "distilbert-base-uncased"
+TINY_LLAMA = 'TinyLlama/TinyLlama-1.1B-Chat-v1.0'
 
 class llm():
-    def __init__(self, model_name = GPT2):
+    def __init__(self, model_name = GPT2, task = "text-generation"):
         super().__init__()
         self.model_name = model_name
+        self.task = task
 
         # Initialize LLM
         if(model_name == GPT2):
@@ -27,19 +30,23 @@ class llm():
         if(model_name == MISTRAL or model_name == LLAMA3):
             self.model = AutoModelForCausalLM.from_pretrained(self.model_name, torch_dtype="auto")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype="auto")
+        if(model_name == DISTIL_BERT):
+            self.pipe = pipeline(task, model='distilbert-base-cased-distilled-squad')
+        if(model_name == TINY_LLAMA):
+            self.pipe = pipeline(task, model=self.model_name, torch_dtype=torch.bfloat16, device_map="auto")
 
     # Generate some text given a prompt
     def generate(self, prompt):
-        # Use pipeline if using Tiny LLAMA
-        if(self.model_name == TINY_LLAMA):
+        # We choose to use pipeline module here
+        if((self.model_name == TINY_LLAMA or self.model_name == DISTIL_BERT) and self.task == "text-generation"):
             template = [{"role": "user", "content": prompt}]
-
             # Don't tokenize output
             tokenized = self.pipe.tokenizer.apply_chat_template(template, tokenize=False, add_generation_prompt=True)
             output = self.pipe(tokenized, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
             return output[0]["generated_text"]
-
-        # Otherwise use standard functions for LLMs
+        elif((self.model_name == TINY_LLAMA or self.model_name == DISTIL_BERT) and self.task == "question-answering"):
+            # TODO: séparer prompt en question et context, pour pouvoir faire question answering
+            raise NotImplementedError
         else:
             input_ids_pristine = self.tokenizer.encode(prompt, return_tensors='pt')
             output_pristine_ids = self.model.generate(
@@ -72,11 +79,10 @@ class llm():
         prompt += "SITUATION: " + situation + "\n"
         return self.generate(prompt), len(prompt)
 
-    def generate_single_belief(self, situation, passages, beliefgroup):
-        prompt = "Comment on the following situation. Your response should take into account the " + beliefgroup + " viewpoint. \n"
+    def generate_single_belief(self, situation, passage, beliefgroup):
+        prompt = "Comment on the following situation given the accompanying passage. Your response should reflect the " + beliefgroup + " viewpoint in the passage. \n"
         prompt += "SITUATION: " + situation + " viewpoint. \n"
-        for i, passage in enumerate(passages):
-            prompt += "PASSAGE " + str(i + 1) + ": "+ passage + "\n"
+        prompt += "PASSAGE : " + passage + "\n"
         return self.generate(prompt), len(prompt)
         
 
@@ -97,8 +103,8 @@ class llm():
             pluralistic, length_prompt_plur = self.generate_pluralistic(query, [moral_choice_pred, immoral_choice_pred], beliefgroups)
             dummy_pluralistic, length_prompt_dummy_plur = self.generate_dummy_pluralistic(query)
             vanilla, length_prompt_van = self.generate_vanilla(query)
-            moral, length_prompt_moral = self.generate_single_belief(query, [moral_choice_pred, immoral_choice_pred], beliefgroups[0])
-            immoral, length_prompt_immoral = self.generate_single_belief(query, [moral_choice_pred, immoral_choice_pred], beliefgroups[1])         
+            moral, length_prompt_moral = self.generate_single_belief(query, moral_choice_pred, beliefgroups[0])
+            immoral, length_prompt_immoral = self.generate_single_belief(query, immoral_choice_pred, beliefgroups[1])         
 
             if(trim):
                 pluralistic = pluralistic[length_prompt_plur:].strip()

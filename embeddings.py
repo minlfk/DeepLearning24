@@ -6,25 +6,9 @@ from enum import Enum
 from sentence_transformers import SentenceTransformer, util, SimilarityFunction
 from rag import *
 
-def return_distance(model_embd, text1, text2, similarity_metric):
-    if(similarity_metric == "cosine"):
-        model_embd.similarity_fn_name = SimilarityFunction.COSINE
-    elif similarity_metric == "dot":
-        model_embd.similarity_fn_name = SimilarityFunction.DOT_PRODUCT    
-    elif similarity_metric == "euclidean":
-        model_embd.similarity_fn_name = SimilarityFunction.EUCLIDEAN   
-    elif similarity_metric == "manhattan":
-        model_embd.similarity_fn_name = SimilarityFunction.MANHATTAN 
-
-    embd1 = model_embd.encode(text1)
-    embd2 = model_embd.encode(text2)
-
-    similarity = model_embd.similarity([embd1], [embd2])
-    return similarity[0][0].item()
-
 
 # Measure the distance between some responses by LLM and the average of actual passages from different belief groups
-def similarities_results_llm(model_embd, results, key, passages, similarity_metric):
+def similarities_passages(model_embd, results, key, passages, similarity_metric = "cosine"):
     
     similarity_scores = []
     
@@ -53,7 +37,7 @@ def similarities_results_llm(model_embd, results, key, passages, similarity_metr
     return similarity_scores
 
 # Measure distance between LLM output and norm it needs to respect
-def similarities_norm(model_embd, results, key, norms, similarity_metric="cosine"):
+def similarities_norms(model_embd, results, key, norms, similarity_metric="cosine"):
     similarity_scores = []
 
     # Set the similarity function

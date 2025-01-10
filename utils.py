@@ -1,5 +1,6 @@
 import datasets
 import random
+import csv
 
 def subset_ds(ds, ratio):
     if isinstance(ds, datasets.Dataset):
@@ -18,4 +19,7 @@ def subset_ds(ds, ratio):
 
     return subset
 
-#def fit_vectorizer(vectorizer, ds):
+def save_list(name, list):
+    with open(name, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerows(list)
