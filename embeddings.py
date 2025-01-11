@@ -26,7 +26,7 @@ def similarities_passages(model_embd, results, key, passages, similarity_metric 
         # Compute embedding of LLM output
         llm_embd = model_embd.encode(result[key])
         # Compute average of embeddings of passages from different perspectives
-        beliefs_embds = [model_embd.encode[passage] for passage in passages[i]]
+        beliefs_embds = [model_embd.encode(passage) for passage in passages[i]]
 
         average_embd = np.mean(beliefs_embds, axis=0)
 

@@ -19,7 +19,16 @@ def subset_ds(ds, ratio):
 
     return subset
 
-def save_list(name, list):
-    with open(name, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file)
-        writer.writerows(list)
+def save_list(file_name, data):
+    
+    # Extract field names (keys of the dictionaries)
+    fieldnames = data[0].keys()
+    
+    with open(file_name, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        
+        # Write header row (field names)
+        writer.writeheader()
+        
+        # Write each dictionary as a row
+        writer.writerows(data)
