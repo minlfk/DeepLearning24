@@ -105,7 +105,8 @@ class llm():
             vanilla, length_prompt_van = self.generate_vanilla(query)
             moral, length_prompt_moral = self.generate_single_belief(query, moral_choice_pred, beliefgroups[0])
             immoral, length_prompt_immoral = self.generate_single_belief(query, immoral_choice_pred, beliefgroups[1])         
-
+            
+            # TODO: if model == GPT2 then trim
             if(trim):
                 pluralistic = pluralistic[length_prompt_plur:].strip()
                 dummy_pluralistic = dummy_pluralistic[length_prompt_dummy_plur:].strip()
