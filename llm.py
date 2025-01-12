@@ -31,22 +31,42 @@ class llm():
             self.model = AutoModelForCausalLM.from_pretrained(self.model_name, torch_dtype="auto")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype="auto")
         if(model_name == DISTIL_BERT):
+            print("model is DISTIL BERT")
             self.pipe = pipeline(task, model='distilbert-base-cased-distilled-squad')
         if(model_name == TINY_LLAMA):
+            print("model is TINY_LLAMA")
             self.pipe = pipeline(task, model=self.model_name, torch_dtype=torch.bfloat16, device_map="auto")
 
     # Generate some text given a prompt
     def generate(self, prompt):
         # We choose to use pipeline module here
-        if((self.model_name == TINY_LLAMA or self.model_name == DISTIL_BERT) and self.task == "text-generation"):
+
+        # ============================= TINY LLAMA ================================
+        if((self.model_name == TINY_LLAMA) and self.task == "text-generation"):
+            print("model is TINY_LLAMA")
             template = [{"role": "user", "content": prompt}]
             # Don't tokenize output
             tokenized = self.pipe.tokenizer.apply_chat_template(template, tokenize=False, add_generation_prompt=True)
             output = self.pipe(tokenized, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
             return output[0]["generated_text"]
-        elif((self.model_name == TINY_LLAMA or self.model_name == DISTIL_BERT) and self.task == "question-answering"):
-            # TODO: séparer prompt en question et context, pour pouvoir faire question answering
-            raise NotImplementedError
+        
+        # ============================= DISTIL_BERT ================================
+        elif((self.model_name == DISTIL_BERT) and self.task == "question-answering"):
+            print("model is DISTIL BERT")
+            # dividing the prompt in context and question
+            split_keyword = "SITUATION:"
+            if split_keyword in prompt:
+                print("dividing prompt")
+                question, context = prompt.split(split_keyword, 1)
+                print("question: " + question)
+                print("context: " + context)
+            else:
+                raise ValueError("The word 'SITUATION:' was not found in the prompt.")
+            template = [{"context": context, "question": question}]
+            answer = self.pipe(question = template[0]["question"], context = template[0]["context"])
+            return answer["answer"]
+        
+        # ============================= OTHER MODELS ================================
         else:
             input_ids_pristine = self.tokenizer.encode(prompt, return_tensors='pt')
             output_pristine_ids = self.model.generate(
@@ -106,13 +126,26 @@ class llm():
             moral, length_prompt_moral = self.generate_single_belief(query, moral_choice_pred, beliefgroups[0])
             immoral, length_prompt_immoral = self.generate_single_belief(query, immoral_choice_pred, beliefgroups[1])         
             
-            # TODO: if model == GPT2 then trim
             if(trim):
-                pluralistic = pluralistic[length_prompt_plur:].strip()
-                dummy_pluralistic = dummy_pluralistic[length_prompt_dummy_plur:].strip()
-                vanilla = vanilla[length_prompt_van:].strip()
-                moral = moral[length_prompt_moral:].strip()
-                immoral = immoral[length_prompt_immoral:].strip()
+                if (self.model_name == GPT2):
+                    ignore_length_plur = length_prompt_plur
+                    ignore_length_dummy_plur = length_prompt_dummy_plur
+                    ignore_length_van = length_prompt_van
+                    ignore_length_moral = length_prompt_moral
+                    gnore_length_immoral = length_prompt_immoral
+                if (self.model_name == TINY_LLAMA or self.model_name == DISTIL_BERT):
+                    print("cutting prompt")
+                    ignore_length_plur = length_prompt_plur + len("<|user|>/n</s><|assistant|>")
+                    ignore_length_dummy_plur = length_prompt_dummy_plur + len("<|user|>/n</s><|assistant|>")
+                    ignore_length_van = length_prompt_van + len("<|user|>/n</s><|assistant|>")
+                    ignore_length_moral = length_prompt_moral + len("<|user|>/n</s><|assistant|>")
+                    gnore_length_immoral = length_prompt_immoral + len("<|user|>/n</s><|assistant|>")
+                
+                pluralistic = pluralistic[ignore_length_plur:].strip()
+                dummy_pluralistic = dummy_pluralistic[ignore_length_dummy_plur:].strip()
+                vanilla = vanilla[ignore_length_van:].strip()
+                moral = moral[ignore_length_moral:].strip()
+                immoral = immoral[gnore_length_immoral:].strip()
 
             results.append({"pluralistic": pluralistic, "dummy_pluralistic": dummy_pluralistic, "vanilla": vanilla, "moral": moral, "immoral": immoral})
 
