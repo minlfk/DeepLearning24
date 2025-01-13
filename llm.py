@@ -31,8 +31,10 @@ class llm():
             self.model = AutoModelForCausalLM.from_pretrained(self.model_name, torch_dtype="auto")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype="auto")
         if(model_name == DISTIL_BERT):
+            print("model is DISTIL_BERT")
             self.pipe = pipeline(task, model='distilbert-base-cased-distilled-squad')
         if(model_name == TINY_LLAMA):
+            print("model is TINY_LLAMA")
             self.pipe = pipeline(task, model=self.model_name, torch_dtype=torch.bfloat16, device_map="auto")
 
     # Generate some text given a prompt
@@ -50,6 +52,7 @@ class llm():
         # ============================= DISTIL_BERT ================================
         elif((self.model_name == DISTIL_BERT) and self.task == "question-answering"):
             # dividing the prompt in context and question
+            print("model is DISTIL_BERT")
             split_keyword = "SITUATION:"
             if split_keyword in prompt:
                 question, context = prompt.split(split_keyword, 1)
@@ -57,6 +60,7 @@ class llm():
                 raise ValueError("The word 'SITUATION:' was not found in the prompt.")
             template = [{"context": context, "question": question}]
             answer = self.pipe(question = template[0]["question"], context = template[0]["context"])
+            print(answer["answer"])
             return answer["answer"]
         
         # ============================= OTHER MODELS ================================
@@ -105,6 +109,7 @@ class llm():
     # - Fetch 1) pluralistic answer with passages 2) pluralistic answer without passages 3) answer with additional instructions
     def run_on_ds(self, ds, kb_embed, model_embd, distance_metric, beliefgroups, range = 2, trim = True):
         results = []
+        print("run_on_ds called")
         for i, elem in (enumerate(ds[:range])):
             query = elem[0]['situation'] + ' ' + elem[1]['intention']
             retrieved_moral = kb_embed.retrieve(model_embd.encode(query), distance_metric, 'moral', k = 1)

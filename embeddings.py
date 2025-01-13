@@ -9,10 +9,9 @@ from rag import *
 
 # Measure the distance between some responses by LLM and the average of actual passages from different belief groups
 def similarities_passages(model_embd, results, key, passages, similarity_metric = "cosine"):
-    
     similarity_scores = []
     
-    if(similarity_metric == "cosine"):
+    if similarity_metric == "cosine":
         model_embd.similarity_fn_name = SimilarityFunction.COSINE
     elif similarity_metric == "dot":
         model_embd.similarity_fn_name = SimilarityFunction.DOT_PRODUCT    
@@ -22,7 +21,6 @@ def similarities_passages(model_embd, results, key, passages, similarity_metric 
         model_embd.similarity_fn_name = SimilarityFunction.MANHATTAN 
     
     for i, result in enumerate(results):
-
         # Compute embedding of LLM output
         llm_embd = model_embd.encode(result[key])
         # Compute average of embeddings of passages from different perspectives
