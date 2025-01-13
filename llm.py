@@ -8,10 +8,6 @@ from rag import *
 
 # Global variables for models
 GPT2 = 'gpt2'
-MISTRAL = 'mistralai/Mistral-7B-Instruct-v0.1'
-LLAMA3 = "meta-llama/Meta-Llama-3-8B"
-T5 = "google/flan-t5-small"
-DISTIL_BERT = "distilbert-base-uncased"
 TINY_LLAMA = 'TinyLlama/TinyLlama-1.1B-Chat-v1.0'
 
 class llm():
@@ -24,15 +20,6 @@ class llm():
         if(model_name == GPT2):
             self.model = GPT2LMHeadModel.from_pretrained(self.model_name)
             self.tokenizer = GPT2Tokenizer.from_pretrained(self.model_name)
-        if(model_name == T5):
-            self.tokenizer = AutoTokenizer.from_pretrained(T5, torch_dtype="auto")
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(T5, torch_dtype="auto")
-        if(model_name == MISTRAL or model_name == LLAMA3):
-            self.model = AutoModelForCausalLM.from_pretrained(self.model_name, torch_dtype="auto")
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype="auto")
-        if(model_name == DISTIL_BERT):
-            print("model is DISTIL_BERT")
-            self.pipe = pipeline(task, model='distilbert-base-cased-distilled-squad')
         if(model_name == TINY_LLAMA):
             print("model is TINY_LLAMA")
             self.pipe = pipeline(task, model=self.model_name, torch_dtype=torch.bfloat16, device_map="auto")
@@ -48,20 +35,6 @@ class llm():
             tokenized = self.pipe.tokenizer.apply_chat_template(template, tokenize=False, add_generation_prompt=True)
             output = self.pipe(tokenized, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
             return output[0]["generated_text"]
-        
-        # ============================= DISTIL_BERT ================================
-        elif((self.model_name == DISTIL_BERT) and self.task == "question-answering"):
-            # dividing the prompt in context and question
-            print("model is DISTIL_BERT")
-            split_keyword = "SITUATION:"
-            if split_keyword in prompt:
-                question, context = prompt.split(split_keyword, 1)
-            else:
-                raise ValueError("The word 'SITUATION:' was not found in the prompt.")
-            template = [{"context": context, "question": question}]
-            answer = self.pipe(question = template[0]["question"], context = template[0]["context"])
-            print(answer["answer"])
-            return answer["answer"]
         
         # ============================= OTHER MODELS ================================
         else:
@@ -131,7 +104,7 @@ class llm():
                     ignore_length_van = length_prompt_van
                     ignore_length_moral = length_prompt_moral
                     gnore_length_immoral = length_prompt_immoral
-                if (self.model_name == TINY_LLAMA or self.model_name == DISTIL_BERT):
+                if (self.model_name == TINY_LLAMA):
                     ignore_length_plur = length_prompt_plur + len("<|user|>/n</s><|assistant|>")
                     ignore_length_dummy_plur = length_prompt_dummy_plur + len("<|user|>/n</s><|assistant|>")
                     ignore_length_van = length_prompt_van + len("<|user|>/n</s><|assistant|>")

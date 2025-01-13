@@ -20,7 +20,6 @@ def subset_ds(ds, ratio):
     return subset
 
 def save_list(file_name, data):
-    
     # Extract field names (keys of the dictionaries)
     fieldnames = data[0].keys()
     
@@ -32,3 +31,13 @@ def save_list(file_name, data):
         
         # Write each dictionary as a row
         writer.writerows(data)
+
+def save_similarities(file_name, data):
+    # Transpose the data
+    rows = [dict(zip(data.keys(), values)) for values in zip(*data.values())]
+    
+    # Save to CSV
+    with open(file_name, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=data.keys())
+        writer.writeheader()
+        writer.writerows(rows)

@@ -1,4 +1,3 @@
-#Norm : in the dataset compare it to the pluralistic answers of 
 import math
 import numpy as np
 from typing import Literal, List, Any
