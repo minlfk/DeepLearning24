@@ -9,6 +9,7 @@ from rag import *
 # Global variables for models
 GPT2 = 'gpt2'
 TINY_LLAMA = 'TinyLlama/TinyLlama-1.1B-Chat-v1.0'
+GEMMA = 'google/gemma-2-2b'
 
 class llm():
     def __init__(self, model_name = GPT2, task = "text-generation"):
@@ -23,6 +24,9 @@ class llm():
         if(model_name == TINY_LLAMA):
             print("model is TINY_LLAMA")
             self.pipe = pipeline(task, model=self.model_name, torch_dtype=torch.bfloat16, device_map="auto")
+        if(model_name == GEMMA):
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+            self.model = AutoModelForCausalLM.from_pretrained(self.model_name)  
 
     # Generate some text given a prompt
     def generate(self, prompt):
@@ -35,6 +39,7 @@ class llm():
             tokenized = self.pipe.tokenizer.apply_chat_template(template, tokenize=False, add_generation_prompt=True)
             output = self.pipe(tokenized, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
             return output[0]["generated_text"]
+        
         
         # ============================= OTHER MODELS ================================
         else:
