@@ -103,7 +103,7 @@ class llm():
             immoral, length_prompt_immoral = self.generate_single_belief(query, immoral_choice_pred, beliefgroups[1])         
             
             if(trim):
-                if (self.model_name == GPT2):
+                if (self.model_name == GPT2 or self.model_name == GEMMA):
                     ignore_length_plur = length_prompt_plur
                     ignore_length_dummy_plur = length_prompt_dummy_plur
                     ignore_length_van = length_prompt_van
