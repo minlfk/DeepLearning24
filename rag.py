@@ -1,6 +1,9 @@
 import numpy as np
 from typing import Literal, List, Any
 from enum import Enum
+from sklearn.neighbors import NearestNeighbors
+
+from sentence_transformers import SentenceTransformer
 
 Vec = List
 Val = Any
@@ -99,6 +102,56 @@ class KnowledgeBase:
         :return: Similarity score
         """
         return np.dot(a, b)
+    
+class SituationKnowledgeBase:
+    def __init__(self, situations, embedding_model : SentenceTransformer, metric="cosine"):
+        """
+        Initialize the SituationKnowledgeBase with a list of situations, an embedding model,
+        and a distance metric.
+        
+        :param situations: List of situation strings.
+        :param embedding_model: Model that can encode strings into embeddings.
+        :param metric: Distance metric to use for NearestNeighbors (e.g., 'cosine', 'euclidean').
+        """
+        self.situations = situations
+        self.embedding_model = embedding_model
+        
+        # Encode all situations into embeddings
+        self.situation_embeddings = np.array([
+            self.embedding_model.encode(situation)
+            for situation in situations
+        ])
+        
+        # Initialize and fit NearestNeighbors
+        self.knn = NearestNeighbors(n_neighbors=1, metric=metric)
+        self.knn.fit(self.situation_embeddings)
+
+    def query(self, query_str : str, k=1):
+        """
+        Query the knowledge base to find the k closest situations to the given query string.
+        
+        :param query_str: The text describing a situation to match against the KB.
+        :param k: Number of neighbors (closest situations) to retrieve.
+        :return: A list of dictionaries, each containing 'index', 'distance', and 'situation' keys.
+        """
+        # Encode the query
+        q_emb = self.embedding_model.encode(query_str).reshape(1, -1)
+        
+        # Retrieve the k closest neighbors
+        distances, indices = self.knn.kneighbors(q_emb, n_neighbors=k)
+        
+        # Each row in 'indices' and 'distances' corresponds to the query,
+        # so we'll iterate over them (though there's only 1 query row).
+        results = []
+        for dist, idx in zip(distances[0], indices[0]):
+            results.append({
+                "index": idx,
+                "distance": dist,
+                "situation": self.situations[idx]
+            })
+        
+        return results
+
     
 def metric_exact_match(ans_pred: str, ans_true: str) -> float:
     """
