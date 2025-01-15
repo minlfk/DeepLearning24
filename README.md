@@ -25,7 +25,7 @@ The entire pipeline for experiments on Moral Choice: `src\moral_choice_rag.ipynb
 
 #### Conda
 
-We suppose you have `conda` installed on your machine.
+If you have `conda` installed on your machine.
 You can create an environment with all the necessary dependencies with:
 ```
 conda env create -f environment.yaml
@@ -37,6 +37,7 @@ conda activate dl_env
 
 #### pip
 
+If you do NOT have `conda` installed on your machine.
 ```
 pip install -r requirements.txt
 ```
