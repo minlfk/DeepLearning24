@@ -10,6 +10,7 @@ from rag import *
 GPT2 = 'gpt2'
 TINY_LLAMA = 'TinyLlama/TinyLlama-1.1B-Chat-v1.0'
 GEMMA = 'google/gemma-2-2b'
+PHI_3 = "microsoft/Phi-3-mini-4k-instruct"
 
 class llm():
     def __init__(self, model_name = GPT2, task = "text-generation"):

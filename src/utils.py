@@ -41,3 +41,8 @@ def save_similarities(file_name, data):
         writer = csv.DictWriter(file, fieldnames=data.keys())
         writer.writeheader()
         writer.writerows(rows)
+
+def generate_result_filename(model_name, K, RAG_ENABLED, ds_filename, morality="immoral"):
+    if morality == "immoral":
+        return f"results-{model_name.replace('/', '')}-K{K}-RAG{RAG_ENABLED}-DS{ds_filename}"
+    return f"results-{model_name.replace('/', '')}-K{K}-RAG{RAG_ENABLED}-DS{ds_filename}-{morality}"
