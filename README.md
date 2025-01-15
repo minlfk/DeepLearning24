@@ -1,6 +1,9 @@
-# Deep Learning 24-25: Efficient Pluralistic alignment with RAG
+<h1 align="center">
+   Deep Learning FS24: <br/>
+  Efficient Pluralistic alignment with RAG
+</h1>
 
-##### Table of Contents  
+### Table of Contents  
 [Introduction](#Intro) \
 [Setup](#Setup) \
 [Experiments](#Experiments)  
@@ -20,6 +23,8 @@ The entire pipeline for experiments on Moral Choice: `src\moral_choice_rag.ipynb
 
 ## Setup
 
+#### Conda
+
 We suppose you have `conda` installed on your machine.
 You can create an environment with all the necessary dependencies with:
 ```
@@ -28,6 +33,12 @@ conda env create -f environment.yaml
 You can then activate the environment with:
 ```
 conda activate dl_env
+```
+
+#### pip
+
+```
+pip install -r requirements.txt
 ```
 
 
