@@ -22,7 +22,6 @@ class llm():
             self.model = GPT2LMHeadModel.from_pretrained(self.model_name)
             self.tokenizer = GPT2Tokenizer.from_pretrained(self.model_name)
         if(model_name == TINY_LLAMA):
-            print("model is TINY_LLAMA")
             self.pipe = pipeline(task, model=self.model_name, torch_dtype=torch.bfloat16, device_map="auto")
         if(model_name == GEMMA):
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
@@ -35,7 +34,6 @@ class llm():
         # ============================= TINY LLAMA ================================
         if((self.model_name == TINY_LLAMA) and self.task == "text-generation"):
             template = [{"role": "user", "content": prompt}]
-            # Don't tokenize output
             tokenized = self.pipe.tokenizer.apply_chat_template(template, tokenize=False, add_generation_prompt=True)
             output = self.pipe(tokenized, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
             return output[0]["generated_text"]
@@ -87,7 +85,6 @@ class llm():
     # - Fetch 1) pluralistic answer with passages 2) pluralistic answer without passages 3) answer with additional instructions
     def run_on_ds(self, ds, kb_embed, model_embd, distance_metric, beliefgroups, range = 2, trim = True):
         results = []
-        print("run_on_ds called")
         for i, elem in (enumerate(ds[:range])):
             query = elem[0]['situation'] + ' ' + elem[1]['intention']
             retrieved_moral = kb_embed.retrieve(model_embd.encode(query), distance_metric, 'moral', k = 1)
