@@ -47,8 +47,7 @@ pip install -r requirements.txt
 
 For experiments using Moral Stories, you can run the notebook [Moral Stories](src\moral_stories.ipynb). \
 For experiments using Moral Choice, you can run the notebook [Moral Choice](src\moral_stories_rag.ipynb). \
-We recommend running the experiments for BERT on Google Colab or a cluster with strong GPU capabilities (we used the Nvidia L4 GPU), and not on a local machine.
-\
+
 Note: You need to run all your experiments from `src`. 
 
 
